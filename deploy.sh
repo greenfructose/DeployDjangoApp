@@ -156,6 +156,8 @@ su postgres -c "psql -c \"ALTER ROLE $APPNAME SET timezone TO 'UTC';\""
 echo "Granting user privileges..."
 su postgres -c "psql -c \"GRANT ALL PRIVILEGES ON DATABASE $APPNAME TO $APPNAME;\""
 
+# Get all IP addresses
+
 # Write config file
 echo "Writing configuration file..."
 cat > /tmp/$APPNAME.cfg << EOF
@@ -168,6 +170,7 @@ port = 5432
 
 [django]
 secret = $DJANGO_SECRET_KEY
+hosts = 127.0.0.1,localhost,0.0.0.0,$(tr -s ' ' ',' <<< $(hostname -I | xargs))
 EOF
 mv /tmp/$APPNAME.cfg $APPFOLDERPATH
 chown $APPNAME:$GROUPNAME $APPFOLDERPATH/$APPNAME.cfg
@@ -243,7 +246,7 @@ cat > /tmp/$APPNAME << EOF
 server {
         listen 80;
 
-        server_name localhost $(echo hostname -I | xargs);
+        server_name localhost $(hostname -I | xargs);
 
         location / {
                 proxy_set_header Host \$host;
